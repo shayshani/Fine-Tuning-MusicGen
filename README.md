@@ -8,3 +8,11 @@ We have made a notebook that is ready to run on [google colab](https://colab.res
 
 ## Requirements
 You first need to clone that repository and installing the requirements.
+```
+!git clone https://github.com/facebookresearch/audiocraft.git
+%cd audiocraft
+!pip install -e .
+!pip install dora-search
+!pip install numba
+```
+
