@@ -36,6 +36,8 @@ Now, you'll need to describe in a sentence your music to realize the dreamboothi
 If you dont know exactly how to describe it, the notebook includes a script to recommend a relevant description.
 
 ## Train
+All of the training code is in the Colab notebook mentioend above.
+
 In order to use our code, save the path to your tracks in a variable 
 ``` ruby
 path_to_sentnce
