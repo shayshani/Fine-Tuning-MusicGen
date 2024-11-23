@@ -1,6 +1,7 @@
 # Fine-Tuning MusicGen
 
 Link to Colab notebook : [Link](https://colab.research.google.com/drive/1ZkRV4hJoPn0aVzlsIFL73QCFiCgav999?usp=sharing)
+
 Link to demo : [Link](https://colab.research.google.com/drive/1dMkrr9Mrso7gWgmAxSOqIataQyEkVJgv?usp=sharing)
 
 The repository offers training code to fine-tune [MusicGen](https://github.com/facebookresearch/audiocraft/blob/main/docs/MUSICGEN.md), a controllable text-to-music model created by Meta. MusicGen is a single stage auto-regressive Transformer model trained over a 32kHz Encodec tokenizer with 4 codebooks sampled at 50 Hz.
