@@ -1,7 +1,7 @@
 # Fine-Tuning MusicGen
 The repository offers training code to fine-tune [MusicGen](https://github.com/facebookresearch/audiocraft/blob/main/docs/MUSICGEN.md), a controllable text-to-music model created by Meta. MusicGen is a single stage auto-regressive Transformer model trained over a 32kHz Encodec tokenizer with 4 codebooks sampled at 50 Hz.
 
-The target of this repo is to let people genrate a unique niche of music wether it's a special genre or an artist, or more specifically, to make MusicGen learn a new type of music i.e. add the abillity to generate a new type of music without "forgetting" to make other genres. In order to achieve this goal, we apply a method called [Dreambooth](https://arxiv.org/pdf/2208.12242), a method that is initially intended for text-to-image diffusion models, but we implemented it on our model. You can read more about it in our paper: ________________
+The target of this repo is to let people genrate a unique niche of music wether it's a special genre or an artist, or more specifically, to make MusicGen learn a new type of music i.e. add the abillity to generate a new type of music without "forgetting" to make other genres. In order to achieve this goal, we take inspiration from [Dreambooth](https://arxiv.org/pdf/2208.12242). Originally, Dreambooth is a method to generate images of personal objects in text-to-image models. The method suggests training the model on examples of the personal object alongside similar examples of the pre-trained model. We adapt and augment this method for text-to-audio by adding additional examples that are not similar, enforcing flexibility of the fine-tuned result. For a review of our method please refer to [our summary of it](https://www.overleaf.com/read/txfjhjpnszcm#cf9b9c)
 
 We have made a notebook that is ready to run on [Google Colab](https://colab.research.google.com/drive/1ZkRV4hJoPn0aVzlsIFL73QCFiCgav999?usp=sharing). Note that in order to run it there you'll need to use the A100 or the L4(with extra GPU RAM) because of the need for quite a large amount of RAM.
 
@@ -15,9 +15,9 @@ You first need to clone that repository and installing the requirements.
 !pip install dora-search
 !pip install numba
 ```
-Then, prepare a few tracks of the music you would like the model to learn to generate. The tracks should be no longer than 30 seconds and to be 44100hz. We reccommend 5 tracks. If you change the amount of tracks make sure to modify the code to generate a reasonable amount of tracks. For more details about it read the paper_________________
+Then, prepare a few tracks of the music you would like the model to learn to generate. The tracks should be no longer than 30 seconds and to be 44100hz. We reccommend 5 tracks. If you change the amount of tracks make sure to modify the code to generate a reasonable amount of tracks.
 
-In order to create 30 secoonds tracks out of longer tracks and resample you may use the following code _______________________
+The notebook includes a script to slice the tracks to 30 second long clips if you have not done so ahead of time. 
 
 
 Now, you'll need to describe in a sentence your music to realize the dreamboothing as good as possible. It should look like something like this:
@@ -26,10 +26,10 @@ Now, you'll need to describe in a sentence your music to realize the dreamboothi
 - chill ambient synths
 - upbeat house with catchy bassline
 
-If you dont know exactly how to describe it, you can use our code for help in _________________
+If you dont know exactly how to describe it, the notebook includes a script to recommend a relevant description.
 
 ## Train
-In order to use our code, save the path to yuor tracks in a variable 
+In order to use our code, save the path to your tracks in a variable 
 ``` ruby
 path_to_sentnce
 ```
@@ -43,60 +43,8 @@ generated_path
 ```
 make sure to have "/" at the end of it.
 __________
-From here you are all set to run the code in ____________ if you are in a python notebook.
-Otherwise, you should change:
-- The code that sets the GPU
-``` ruby
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
-```
-- The code that trains the model
-``` ruby
-%env USER=none
-command = (
-    "dora -P audiocraft run"
-    " solver=musicgen/musicgen_base_32khz"
-    " model/lm/model_scale=small"
-    " continue_from=//pretrained/facebook/musicgen-small"
-    " conditioner=text2music"
-    " dset=audio/train"
-    " dataset.num_workers=2"
-    " dataset.valid.num_samples=1"
-    " dataset.batch_size=10"
-    " schedule.cosine.warmup=8"
-    " optim.optimizer=adamw"
-    " optim.lr=1e-4" # 1e-5 might be better
-    " optim.epochs=1"
-    " optim.updates_per_epoch=1000"
-    " optim.adam.weight_decay=0.01"
-    " generate.lm.prompted_samples=False"
-    " generate.lm.gen_gt_samples=True"
-)
-
-# Run the command and capture the output
-try:
-    process = subprocess.run(
-        command,
-        shell=True,
-        check=True,
-        capture_output=True,
-        text=True
-    )
-    output = process.stderr
-
-    # Extract the sequence before "/checkpoint.th"
-    match = re.search(r"xps/([a-f0-9]+)/checkpoint\.th", output)
-    if match:
-        sequence = match.group(1)
-        print(f"Extracted sequence: {sequence}")
-
-        # Use the extracted sequence for further processing
-    else:
-        print("Sequence not found in output.")
-except subprocess.CalledProcessError as e:
-    print(f"Error running command: {e.stderr}")
-```
-- bla bla
-- bla bla
+From here you are all set to run the training code!
+If you are not running this code on Colab, you should probably change some of the code to fit your needs.
 
 Note that it trains a model so it will take a while. As mentioned, make sure you have a GPU with at least 35gb of RAM.
 
@@ -120,7 +68,24 @@ shutil.copy(source_path, destination_path)
 ```
 After saving it, if you are unsatisfied from the result you can load that checkpoint and continue the training for more epochs through this code
 ``` ruby
-__________
+sig = "YOUR SIG"
+
+command = (
+    "dora run solver=musicgen/musicgen_base_32khz"
+    " model/lm/model_scale=small"
+
+    # you can continue a run this way, if the filesystem still exists:
+    f" continue_from=//SIG/{sig}"
+
+    # or you can save the .th file, load it in a new runtime, and resume from just it:
+    f" continue_from=/tmp/audiocraft_argov/xps/{sig}/checkpoint.th"
+
+    ...
+    Same parameters as the training
+    ...
+)
+
+!{command}
 ```
 
 
